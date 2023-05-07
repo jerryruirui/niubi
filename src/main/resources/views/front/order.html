@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="author" content="南京微服汇网络科技有限公司">
+    <link rel="shortcut icon" href="http://wfuhui.com/favicon.ico" type="image/x-icon">
+
+    <title>旅游</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/common.css" rel="stylesheet">
+
+    <style type="text/css">
+        body{
+            padding-top:70px;
+        }
+        tbody{
+        	border-bottom: 1px solid #ddd;
+        }
+        .nav-tabs{
+        	border-bottom: none
+        }
+        .price{
+        	font-size:12px
+        }
+        .spec{
+        	font-size: 12px;
+        	color: #555
+        }
+    </style>
+</head>
+<!-- NAVBAR -->
+<body>
+<div id="app" v-cloak class="container">
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/index.html">旅游</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right hidden-sm">
+            <li v-if="user"><a href="user.html" >欢迎，{{user.loginName}}</a></li>
+            <li v-if="user"><a href="#" @click="logout()" >退出</a></li>
+            <li v-if="!user"><a href="/login.html" >登录</a></li>
+            <li v-if="!user"><a href="/register.html" >注册</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Wrap the rest of the page in another container to center all the content. -->
+    <div class="container marketing">
+      <!-- Three columns of text below the carousel-->
+  
+    <div class="row">
+    	<div class="col-md-2">
+    		<div class="list-group">
+			  <a href="#" @click="tabItem(1)" class="list-group-item">
+			    	个人信息
+			  </a>
+			  <a href="#" @click="tabItem(2)" class="list-group-item active">
+			    	我的订单
+			  </a>
+			</div>
+    	</div>
+    	<div class="col-md-10">
+    		<div id="orderinfo" v-if="tab == 2">
+    			<ul class="nav nav-tabs">
+				  <li role="presentation" :class="active == -1?'active':''" @click="getOrder(-1)"><a href="#">全部</a></li>
+				  <li role="presentation" :class="active == 1?'active':''" @click="getOrder(1)"><a href="#">待付款</a></li>
+				  <li role="presentation" :class="active == 2?'active':''" @click="getOrder(2)"><a href="#">已完成</a></li>
+				</ul>
+    			<table class="table">
+    				<tbody>
+    					<tr v-for="order in orderList">
+    						<td>
+    							<div style="display: flex; margin-bottom: 4px">
+    								<span style="flex: 1">订单编号：{{order.orderNumber}}</span>
+    								<span>{{order.createTime}}</span>
+    							</div>
+    							<div class="scenic" v-for="scenic in order.orderScenicList" style="display: flex; margin-bottom: 4px">
+    								<img alt="" :src="scenic.picUrl" width="80" height="60" style="margin-right: 10px">
+    								<div style="flex: 1">
+	    								<div>{{scenic.scenicName}}</div>
+	    								<div class="spec">{{scenic.specName}}</div>
+	    								<div class="price">￥{{scenic.price}}</div>
+    								</div>
+    							</div>
+    							
+    							<div style="text-align: right;">
+    								<span class="price">￥{{order.totalAmount}}</span>
+    								<button type="button" class="btn btn-default btn-sm" v-if="order.orderStatus == 1" @click="cancel(order.id)">取消</button>
+    								<button type="button" class="btn btn-primary btn-sm" v-if="order.orderStatus == 1" @click="pay(order.id)">支付</button>
+    								<button type="button" class="btn btn-warning btn-sm" v-if="order.orderStatus == 2" @click="toEvaluate(order.id)">评价</button>
+    							</div>
+    						</td>
+    					</tr>
+    				</tbody>
+    			</table>
+    		</div>
+    	</div>
+    </div>
+    
+
+	<!-- Modal -->
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="myModalLabel">评价</h4>
+	      </div>
+	      <div class="modal-body">
+	         <textarea rows="" cols="" placeholder="评价内容" class="form-control" v-model="evaluate.content">
+		      
+		      </textarea>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            <button type="button" class="btn btn-primary">保存</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+   </div>
+   
+    <!-- FOOTER -->
+    <footer style="text-align: center">
+      <p></p>
+    </footer>
+
+  </div>
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="/plugins/bootstrap-paginator/bootstrap-paginator.js"></script>
+<script src="/js/front/common.js"></script>
+<script type="text/javascript">
+
+var app = new Vue({
+	el:'#app',
+	data:{
+		user: null,
+		tab: 2,
+		orderList: [],
+		evaluate: {},
+		active: -1
+	},
+	
+	methods: {
+		tabItem: function(i){
+			app.tab = i;
+			if(i == 1){
+				location.href="user.html";
+			}
+		},
+		toEvaluate: function(orderId){
+        	this.orderId = orderId;
+        	$('#myModal').modal('show');
+        },
+	    getOrder: function(status){
+	      this.active = status;
+    	  $.ajax({
+            type: "GET",
+              url: domain + "api/order/list",
+              contentType: "application/json",
+              headers: {
+                token: localStorage.getItem("ftoken")
+              },
+              data: {
+            	  status: status
+              },
+              success: function(r){
+                app.orderList = r.orderList;
+            }
+          });
+	    },
+	    logout: function(){
+          localStorage.removeItem("fuser");
+          app.user = null;
+        },
+        evaluate: function(orderId, scenicId){
+        	$('#myModal').modal('toggle');
+        },
+        cancel(id){
+        	$.ajax({
+                type: "GET",
+                  url: domain + "api/order/cancel",
+                  contentType: "application/json",
+                  headers: {
+                    token: localStorage.getItem("ftoken")
+                  },
+                  data: {id: id},
+                  success: function(r){
+                    app.orderList = r.orderList;
+                }
+              });
+        },
+        pay(id){
+        	location.href="order_pay.html?id="+id
+        },
+        complete(id){
+        	$.ajax({
+                type: "GET",
+                  url: domain + "api/order/complete",
+                  contentType: "application/json",
+                  headers: {
+                    token: localStorage.getItem("ftoken")
+                  },
+                  data: {id: id},
+                  success: function(r){
+                    app.orderList = r.orderList;
+                }
+              });
+        }
+	},
+	created: function(){
+		var user = localStorage.getItem("fuser");
+        if(user){
+          this.user = JSON.parse(user);
+        }else{
+        	
+        }
+        this.getOrder(-1);
+	}
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wfuhui.modules.scenic.dao.ScenicSpecDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.wfuhui.modules.scenic.entity.ScenicSpecEntity" id="scenicSpecMap">
+        <result property="id" column="id"/>
+        <result property="specName" column="spec_name"/>
+        <result property="price" column="price"/>
+        <result property="scenicId" column="scenic_id"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.wfuhui.modules.scenic.entity.ScenicSpecEntity">
+		select * from ticket_scenic_spec where id = #{value}
+	</select>
+	
+	<select id="queryByScenicId" resultType="com.wfuhui.modules.scenic.entity.ScenicSpecEntity">
+		select * from ticket_scenic_spec where scenic_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.wfuhui.modules.scenic.entity.ScenicSpecEntity">
+		select * from ticket_scenic_spec
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ticket_scenic_spec 
+	</select>
+	 
+	<insert id="save" parameterType="com.wfuhui.modules.scenic.entity.ScenicSpecEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into ticket_scenic_spec
+		(
+			`spec_name`, 
+			`price`, 
+			`scenic_id`
+		)
+		values
+		(
+			#{specName}, 
+			#{price}, 
+			#{scenicId}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.wfuhui.modules.scenic.entity.ScenicSpecEntity">
+		update ticket_scenic_spec 
+		<set>
+			<if test="specName != null">`spec_name` = #{specName}, </if>
+			<if test="price != null">`price` = #{price}, </if>
+			<if test="scenicId != null">`scenic_id` = #{scenicId}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ticket_scenic_spec where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ticket_scenic_spec where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

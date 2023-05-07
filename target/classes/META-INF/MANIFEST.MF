@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Built-By: asus
+Build-Jdk: 17.0.4.1
+Implementation-Title: tourism-server
+Implementation-Version: 0.0.1-SNAPSHOT
+Implementation-Vendor-Id: com.wfuhui
+Implementation-URL: https://spring.io/projects/spring-boot/tourism-serve
+ r
+Created-By: Maven Integration for Eclipse
+

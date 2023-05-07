@@ -1,0 +1,216 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <link rel="shortcut icon" href="http://wfuhui.com/favicon.ico" type="image/x-icon">
+
+    <title>旅游</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/common.css" rel="stylesheet">
+
+    <style type="text/css">
+        body{
+            padding-top:70px;
+        }
+        
+        .avatar{
+			width: 30px;
+			height: 30px;
+			border-radius: 50%;
+		}
+		
+		.user{
+			display: flex;
+			align-items: center;
+			margin-bottom: 6px;
+		}
+		
+		.user .nickname{
+			flex: 1
+		}
+		
+		.user .avatar{
+			width: 30px;
+			height: 30px;
+			margin-right: 4px
+		}
+		
+		.user .like img{
+			width: 20px;
+			height: 20px;
+			margin-top: 8px;
+			margin-right: 16px;
+			margin-left: 16px
+		}
+    </style>
+</head>
+<!-- NAVBAR -->
+<body>
+<div id="app" v-cloak class="container">
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/index.html">旅游</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                </ul>
+                <ul class="nav navbar-nav navbar-right hidden-sm">
+                    <li v-if="user"><a href="user.html">欢迎，{{user.loginName}}</a></li>
+                    <li v-if="user"><a href="#" @click="logout()" >退出</a></li>
+                    <li v-if="!user"><a href="/login.html" >登录</a></li>
+                    <li v-if="!user"><a href="/register.html" >注册</a></li>
+                    <li><a href="/admin/index.html" target="_blank">管理端</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Wrap the rest of the page in another container to center all the content. -->
+    <div class="main">
+      <!-- Three columns of text below the carousel-->
+      <div class="row">
+
+    </div><!-- /.row -->
+
+      <div class="row">
+        <div class="col-md-12 content">
+            <h3>{{article.title}}</h3>
+            <span class="time">{{article.publishDate}}</span>
+
+            <div v-html="article.content" v-if="article.type == 1"></div>
+
+            <video id="videoUrl" controls="controls" width="100%" v-bind:src="article.videoUrl" v-if="article.type == 2">您的浏览器不支持 video 标签。</video>
+        </div>
+
+      </div>
+      
+      <div class="form-group">
+	    <textarea rows="" cols="" class="form-control" placeholder="评论" v-model="content"></textarea>
+	  </div>
+	  
+	  <div class="form-group" style="text-align: right">
+	  	<button @click="saveComment" class="btn btn-primary">保存</button>
+	  </div>
+	  <hr>
+	  <div>
+		<div v-for="comment in commentList">
+    	  <div class="user">
+			  <img class="media-object avatar" :src="comment.member.avatarUrl" alt="">
+			  <div class="nickname">{{comment.member.nickname}}</div>
+			  <div class="time">
+			  	<div>{{comment.createTime}}</div>
+			  </div>
+		  </div>
+		  <div class="content">
+		    {{comment.content}}
+		  </div>
+		  <hr>
+		</div>
+	  </div>
+    </div>
+    <!-- FOOTER -->
+    <footer style="text-align: center">
+      <p>&copy;Copyright 2020 版权所有 | <a style=""  href="http://www.miitbeian.gov.cn/">苏ICP备XXXX</a></p>
+    </footer>
+  </div>
+  <!-- Bootstrap core JavaScript
+  ================================================== -->
+  <!-- Placed at the end of the document so the pages load faster -->
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="/plugins/bootstrap-paginator/bootstrap-paginator.js"></script>
+<script src="/js/front/common.js"></script>
+	<script>   
+    
+	var app = new Vue({
+	  el: '#app',
+	  data: {
+		article: {},
+        user: null,
+        content: '',
+        commentList: []
+	  },
+      methods: {
+        getArticle: function(id){
+          $.getJSON(domain + "api/article/detail", {id: id}, function(r){
+            if(r.code == 0){
+              app.article = r.article;
+            }
+          })
+      	},
+      	getComment(id){
+      		$.getJSON(domain + "api/comment/list", {articleId: id}, function(r){
+              if(r.code == 0){
+                app.commentList = r.commentList;
+              }
+            })
+      	},
+      	saveComment(){
+      		var token = localStorage.getItem("ftoken");
+      		if(!token){
+      			location.href="/login.html"
+      			return;
+      		}
+      		var comment = {
+      			content: app.content,
+      			articleId: app.article.id
+      		};
+	    	$.ajax({
+	            type: "POST",
+	              url: domain + "api/comment/save",
+	              contentType: "application/json",
+	              headers: {
+	                token: localStorage.getItem("ftoken")
+	              },
+	              data: JSON.stringify(comment),
+	              success: function(r){
+	                if(r.code === 0){
+	                	alert("保存成功");
+	              }else{
+	                alert(r.msg);
+	              }
+	            }
+	          });
+      	},
+      	saveHistory: function(id){
+      		$.ajax({
+               type: "POST",
+                 url: domain + "api/history/save",
+                 contentType: "application/json",
+                 headers: {
+                   token: localStorage.getItem("ftoken")
+                 },
+                 data: JSON.stringify({articleId: id}),
+                 success: function(r){
+               	}
+             });
+        },
+      },
+      created: function(){
+        var id = T.p("id");
+        this.getArticle(id);
+        this.getComment(id);
+        var user = localStorage.getItem("fuser");
+        if(user){
+          this.user = JSON.parse(user);
+          this.saveHistory(id);
+        }
+      }
+	})
+	</script>
+  </body>
+</html>

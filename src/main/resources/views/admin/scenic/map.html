@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script charset="utf-8" src="https://map.qq.com/api/js?v=2.exp&key=2XPBZ-R6SKP-R2ZDQ-LSMZQ-FSDI3-SKFCJ&libraries=place"></script>
+</head>
+<body>
+<div>
+    <input id="keyword" type="textbox" value="" placeholder="输入地址">
+    <input type="button" value="搜索" onclick="searchKeyword()">
+</div>
+<div id="container" style="height: 460px"></div>
+<input type="hidden" id="lat">
+<input type="hidden" id="lng">
+<script type="text/javascript">
+
+function mapInit(lng, lat) {
+   var marker;
+   // 创建地图实例
+   let center = new qq.maps.LatLng(lat || 29.548816 , lng || 106.545714);//设置中心点坐标
+   //初始化地图
+   var map = new qq.maps.Map("container", {
+     center,//设置地图中心点坐标
+     zoom: 13 //设置地图缩放级别
+   });
+   
+   //标注表示地图上的点，可自定义标注的图标
+   marker = new qq.maps.Marker({
+     position: center,
+     map: map
+   });
+
+   //文本输入提示
+   var ap = new qq.maps.place.Autocomplete(
+	 document.getElementById("keyword")
+   );
+
+   var keyword = "";
+   //调用Poi检索类。用于进行本地检索、周边检索等服务。
+   var searchService = new qq.maps.SearchService({
+     complete: function(results) {
+       console.log(results);
+       if (results.type === "CITY_LIST") {
+         searchService.setLocation(results.detail.cities[0].cityName);
+         searchService.search(keyword);
+         return;
+       }
+       var pois = results.detail.pois;
+       var latlngBounds = new qq.maps.LatLngBounds();
+       latlngBounds.extend(pois[0].latLng);
+       map.fitBounds(latlngBounds);
+       
+       //对搜索的地址添加标注
+       let searchCenter = new qq.maps.LatLng(pois[0].latLng.lat || 29.548816 , pois[0].latLng.lng || 106.545714);
+       marker = new qq.maps.Marker({
+           position: searchCenter,
+           map: map
+       });
+     }
+   });
+
+   //添加监听事件  获取鼠标点击事件
+   qq.maps.event.addListener(map, "click", function(event) {
+     console.log("event", event);
+     let { lat, lng } = event.latLng;
+     document.getElementById('lat').value = event.latLng.lat.toFixed(5);
+     document.getElementById('lng').value = event.latLng.lng.toFixed(5);
+     if (!marker) {
+       marker = new qq.maps.Marker({
+         position: event.latLng,
+         map: map
+       });
+     } else {
+       marker.setPosition(event.latLng);
+     }
+   });
+
+   //添加监听事件
+   qq.maps.event.addListener(ap, "confirm", function(res) {
+     keyword = res.value;
+     searchService.search(keyword);
+   });
+}
+var map, marker, searchService;
+
+//地图初始化函数，本例取名为init，开发者可根据实际情况定义
+function initMap() {
+    //定义地图中心点坐标
+    var center = new TMap.LatLng(39.984120, 116.307484)
+    //定义map变量，调用 TMap.Map() 构造函数创建地图
+    map = new TMap.Map(document.getElementById('container'), {
+        center: center,//设置地图中心点坐标
+        zoom: 17.2,   //设置地图缩放级别
+        pitch: 43.5,  //设置俯仰角
+        rotation: 45    //设置地图旋转角度
+    });
+    
+    //绑定点击事件
+    map.on("click",function(evt){
+        var lat = evt.latLng.getLat().toFixed(6);
+        var lng = evt.latLng.getLng().toFixed(6);
+        document.getElementById('lat').value = lat;
+        document.getElementById('lng').value = lng;
+        createMarker(lat, lng)
+    })
+    
+    //设置Poi检索服务，用于本地检索、周边检索
+    searchService = new qq.maps.SearchService({
+        
+    });
+}
+
+
+//创建marker事件
+function createMarker(lat, lng) {
+	if(marker){
+		removeMarker();
+	}
+    if (!marker) {
+        marker = new TMap.MultiMarker({
+            id: 'marker-layer',
+            map: map,
+            styles: {
+                "marker": new TMap.MarkerStyle({
+                    "width": 25,
+                    "height": 35,
+                    "anchor": { x: 16, y: 32 },
+                    "src": 'https://mapapi.qq.com/web/lbs/javascriptGL/demo/img/markerDefault.png'
+                })
+            },
+            geometries: [{
+                "id": 'demo',
+                "styleId": 'marker',
+                "position": new TMap.LatLng(lat, lng),
+                "properties": {
+                    "title": "marker"
+                }
+            }]
+        });
+    }
+}
+//移除marker事件
+function removeMarker() {
+    if (marker) {
+        marker.setMap(null);
+        marker = null;
+    }
+}
+
+//设置搜索的范围和关键字等属性
+function searchKeyword() {
+    var keyword = document.getElementById("keyword").value;
+    removeMarker()
+    //根据输入的城市设置搜索范围
+    // searchService.setLocation("北京");
+    //根据输入的关键字在搜索范围内检索
+    searchService.search(keyword);
+}
+
+mapInit();
+</script>
+</body>
+</html>

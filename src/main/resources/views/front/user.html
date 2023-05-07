@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="author" content="南京微服汇网络科技有限公司">
+    <link rel="shortcut icon" href="http://wfuhui.com/favicon.ico" type="image/x-icon">
+
+    <title>旅游</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/common.css" rel="stylesheet">
+
+    <style type="text/css">
+        body{
+            padding-top:70px;
+        }
+    </style>
+</head>
+<!-- NAVBAR -->
+<body>
+<div id="app" v-cloak class="container">
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/index.html">旅游</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right hidden-sm">
+            <li v-if="user"><a href="user.html" >欢迎，{{user.loginName}}</a></li>
+            <li v-if="user"><a href="#" @click="logout()" >退出</a></li>
+            <li v-if="!user"><a href="/login.html" >登录</a></li>
+            <li v-if="!user"><a href="/register.html" >注册</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Wrap the rest of the page in another container to center all the content. -->
+    <div class="container marketing">
+      <!-- Three columns of text below the carousel-->
+  
+    <div class="row">
+    	<div class="col-md-2">
+    		<div class="list-group">
+			  <a href="#" @click="tabItem(1)" class="list-group-item active">
+			    	个人信息
+			  </a>
+			  <a href="#" @click="tabItem(2)" class="list-group-item">
+			    	我的订单
+			  </a>
+			</div>
+    	</div>
+    	<div class="col-md-10">
+    		<div id="userinfo" class="col-md-7 col-md-offset-2">
+    			  <div class="form-group" style="text-align: center">
+				    <img alt="" :src="user.avatarUrl" class="img-circle">
+				  </div>	
+    			  <div class="form-group">
+				    <label for="realName">昵称</label>
+				    <input class="form-control" id="nickname" placeholder="昵称" v-model="user.nickname">
+				  </div>
+				  <div class="form-group">
+				    <label for="realName">姓名</label>
+				    <input class="form-control" id="realName" placeholder="姓名" v-model="user.realName">
+				  </div>
+				  <div class="form-group">
+				    <label for="mobile">手机号码</label>
+				    <input class="form-control" id="mobile" placeholder="手机号码" v-model="user.mobile">
+				  </div>
+				  <div class="form-group">
+				    <label for="mobile">性别</label>
+				    <label class="radio-inline">
+                      <input name="gender" type="radio" v-model="user.gender" value="1">男
+                    </label>
+                    <label class="radio-inline">
+                      <input name="gender" type="radio" v-model="user.gender" value="0">女
+                    </label>
+				  </div>
+				  <button @click="saveUser" class="btn btn-primary">保存</button>
+    		</div>
+    	</div>
+    </div>
+
+   </div>
+   
+    <!-- FOOTER -->
+    <footer style="text-align: center">
+      <p></p>
+    </footer>
+
+  </div>
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="/plugins/bootstrap-paginator/bootstrap-paginator.js"></script>
+<script src="/js/front/common.js"></script>
+<script type="text/javascript">
+
+var app = new Vue({
+	el:'#app',
+	data:{
+		user: null,
+		tab: 1,
+		orderList: [],
+		evaluate: {}
+	},
+	
+	methods: {
+		tabItem: function(i){
+			if(i == 2){
+				location.href="order.html"
+			}
+		},
+	    refreshCode: function(){
+	        this.src = "captcha.jpg?t=" + $.now();
+	    },
+	    getUser: function(){
+	    	$.ajax({
+	            type: "GET",
+	              url: domain + "api/member/info",
+	              contentType: "application/json",
+	              headers: {
+	                token: localStorage.getItem("ftoken")
+	              },
+	              data: {},
+	              success: function(r){
+	                app.user = r.member;
+	            }
+	        });
+	    },
+	    saveUser: function(){
+	    	var user = app.user;
+	    	$.ajax({
+	            type: "POST",
+	              url: domain + "api/member/update",
+	              contentType: "application/json",
+	              headers: {
+	                token: localStorage.getItem("ftoken")
+	              },
+	              data: JSON.stringify(user),
+	              success: function(r){
+	                if(r.code === 0){
+	                	alert("修改成功");
+	              }else{
+	                alert(r.msg);
+	              }
+	            }
+	          });
+	    },
+	    logout: function(){
+          localStorage.removeItem("fuser");
+          app.user = null;
+          location.href="login.html"
+        }
+	},
+	created: function(){
+		var tab = T.p("tab");
+		var user = localStorage.getItem("fuser");
+        if(user){
+          this.user = JSON.parse(user);
+        }else{
+        	
+        }
+        this.getUser();
+	}
+});
+</script>
+</body>
+</html>

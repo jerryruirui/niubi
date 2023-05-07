@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="http://wfuhui.com/favicon.ico" type="image/x-icon">
+
+    <title>旅游</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    
+    <link href="/css/common.css" rel="stylesheet">
+
+    <style type="text/css">
+        body{
+            padding-top:70px;
+        }
+        .price{
+        	color: #d9534f
+        }
+        .carousel{
+		    height: 250px;
+		    margin-bottom: 20px;
+		}
+		
+		.carousel .item{
+		    height: 250px
+		}
+		
+		.carousel-inner > .item > img{
+		    margin: 0 auto;
+		    position: static;
+		    width: 100%;
+		    height: 250px;
+		}
+		
+		.article{
+			border-bottom: 1px solid #ddd;
+			margin: 0px;
+			padding: 10px;
+		}
+		
+		.article img{
+			max-width: 180px;
+			max-height: 120px;
+		}
+		
+		.time{
+        	color: #999;
+        	font-size: 12px
+        }
+    </style>
+</head>
+<!-- NAVBAR -->
+<body>
+<div id="app" v-cloak class="container">
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/index.html">旅游</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="index.html">首页</a></li>
+             		<li><a href="front/ticket.html">购票</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right hidden-sm">
+                    <li v-if="user"><a href="/front/user.html">欢迎，{{user.loginName}}</a></li>
+                    <li v-if="user"><a href="#" @click="logout()" >退出</a></li>
+                    <li v-if="!user"><a href="/login.html" >登录</a></li>
+                    <li v-if="!user"><a href="register.html" >注册</a></li>
+                    <li><a href="/admin/index.html" target="_blank">管理端</a></li>
+                </ul>
+                <form class="navbar-form navbar-right" action="front/article-list.html">
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="q" placeholder="Search" v-model="q">
+                    </div>
+                    <button type="submit" class="btn btn-default">搜索</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Wrap the rest of the page in another container to center all the content. -->
+    <div class="main">
+        <!-- Three categorys of text below the carousel-->
+        <div id="carousel-generic" class="carousel slide" data-ride="carousel">
+		  <!-- Indicators -->
+		  <ol class="carousel-indicators">
+		    <li data-target="#carousel-generic" :data-slide-to="i" v-for="(advert, i) in adverts" :class="i==0?'active':''"></li>
+		  </ol>
+		
+		  <!-- Wrapper for slides -->
+		  <div class="carousel-inner" role="listbox">
+		    <div class="item" v-for="(advert, i) in adverts" :class="i==0?'active':''">
+		      <img :src="advert.picUrl" alt="" >
+		    </div>
+		  </div>
+		</div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="media article" v-for="article in articleList">
+				  <div class="media-left">
+				    <a :href="'front/detail.html?id='+article.id+''">
+				      <img class="media-object" :src="article.picUrl" alt="">
+				    </a>
+				  </div>
+				  <div class="media-body" @click="detail(article.id)">
+				    <h4>{{article.title}}</h4>
+				    <div>{{article.summary}}</div>
+				    <span class="time">{{article.publishDate}}</span>
+				  </div>
+				  <div class="media-right">
+				  	
+				  </div>
+				</div>
+            </div>
+        </div><!-- /.row -->
+    </div>
+
+    <!-- FOOTER -->
+    <footer style="text-align: center">
+        <p>&copy;Copyright 2022微服汇科技 版权所有 | <a style=""  href="http://www.miitbeian.gov.cn/">苏ICP备XXXX</a></p>
+    </footer>
+
+</div>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="/plugins/bootstrap-paginator/bootstrap-paginator.js"></script>
+<script src="/js/front/common.js"></script>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            adverts: [],
+            articleList: [],
+            user: null,
+            page: 1,
+			pageSize: 8,
+			q: ''
+        },
+        methods: {
+        	//查询广告
+        	getAdvert: function(){
+            	$.getJSON(domain + "api/advert/list", {}, function(r){
+                  if(r.code == 0){
+                    app.adverts = r.advertList;
+                  }
+                })
+            },
+            
+          	//查询攻略
+            getAritcle: function(){
+            	var page = this.page
+				var pageSize = this.pageSize
+            	$.getJSON(domain + "api/article/list", {page: page, limit: pageSize}, function(r){
+                  if(r.code == 0){
+                    app.articleList = r.articleList;
+                    var totalPage = r.total % app.pageSize == 0 ? r.total / app.pageSize : r.total / app.pageSize + 1;
+                    if(totalPage != 0){
+	                    app.setPage(totalPage)
+                    }
+                  }
+                })
+            },
+            
+            setPage: function(pageSum){
+				$(".pagination").bootstrapPaginator({
+		            //设置版本号
+		            bootstrapMajorVersion: 3,
+		            // 显示第几页
+		            currentPage: app.page,
+		            // 总页数
+		            totalPages: pageSum,
+		            //当单击操作按钮的时候, 执行该函数, 调用ajax渲染页面
+		            onPageClicked: function (event,originalEvent,type,page) {
+		                // 把当前点击的页码赋值给currentPage, 调用ajax,渲染页面
+		                app.page = page
+		                app.getAritcle()
+		            }
+		        })
+			},
+
+            detail: function(id){
+                location.href="/front/article-detail.html?id="+id;
+            },
+            
+            logout: function(){
+                localStorage.removeItem("fuser");
+                localStorage.removeItem("ftoken");
+                app.user = null;
+            }
+
+        },
+        created: function(){
+            var user = localStorage.getItem("fuser");
+            if(user){
+                this.user = JSON.parse(user);
+            }
+            this.getAdvert();
+            this.getAritcle();
+        }
+    })
+</script>
+</body>
+</html>

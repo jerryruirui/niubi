@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wfuhui.modules.scenic.dao.ScenicPicDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.wfuhui.modules.scenic.entity.ScenicPicEntity" id="scenicPicMap">
+        <result property="id" column="id"/>
+        <result property="scenicId" column="scenic_id"/>
+        <result property="picUrl" column="pic_url"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.wfuhui.modules.scenic.entity.ScenicPicEntity">
+		select * from ticket_scenic_pic where id = #{value}
+	</select>
+	
+	<select id="queryOneByScenicId" resultType="com.wfuhui.modules.scenic.entity.ScenicPicEntity">
+		select * from ticket_scenic_pic where scenic_id = #{value} limit 1
+	</select>
+	
+	<select id="queryByScenicId" resultType="string">
+		select pic_url from ticket_scenic_pic where scenic_id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.wfuhui.modules.scenic.entity.ScenicPicEntity">
+		select * from ticket_scenic_pic
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ticket_scenic_pic 
+	</select>
+	 
+	<insert id="save" parameterType="com.wfuhui.modules.scenic.entity.ScenicPicEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into ticket_scenic_pic
+		(
+			`scenic_id`, 
+			`pic_url`
+		)
+		values
+		(
+			#{scenicId}, 
+			#{picUrl}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.wfuhui.modules.scenic.entity.ScenicPicEntity">
+		update ticket_scenic_pic 
+		<set>
+			<if test="scenicId != null">`scenic_id` = #{scenicId}, </if>
+			<if test="picUrl != null">`pic_url` = #{picUrl}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ticket_scenic_pic where id = #{value}
+	</delete>
+	
+	<delete id="deleteByScenicId">
+		delete from ticket_scenic_pic where scenic_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ticket_scenic_pic where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

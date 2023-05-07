@@ -1,0 +1,236 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="author" content="南京微服汇网络科技有限公司">
+    <link rel="shortcut icon" href="http://wfuhui.com/favicon.ico" type="image/x-icon">
+
+    <title>旅游</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/common.css" rel="stylesheet">
+
+    <style type="text/css">
+        body{
+            padding-top:70px;
+        }
+        
+         .tab-pane{
+			padding: 10px
+		}
+		
+        .avatar{
+			width: 30px;
+			height: 30px;
+			border-radius: 50%;
+		}
+		
+		.user{
+			display: flex;
+			align-items: center;
+			margin-bottom: 6px;
+		}
+		
+		.user .nickname{
+			flex: 1
+		}
+		
+		.user .avatar{
+			width: 30px;
+			height: 30px;
+			margin-right: 4px
+		}
+		
+		.user .like img{
+			width: 20px;
+			height: 20px;
+			margin-top: 8px;
+			margin-right: 16px;
+			margin-left: 16px
+		}
+			
+    </style>
+</head>
+<!-- NAVBAR -->
+<body>
+<div id="app" v-cloak class="container">
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/index.html">旅游</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                </ul>
+                <ul class="nav navbar-nav navbar-right hidden-sm">
+                    <li v-if="user"><a href="user.html">欢迎，{{user.loginName}}</a></li>
+                    <li v-if="user"><a href="#" @click="logout()" >退出</a></li>
+                    <li v-if="!user"><a href="/login.html" >登录</a></li>
+                    <li v-if="!user"><a href="/register.html" >注册</a></li>
+                    <li><a href="/admin/index.html" target="_blank">管理端</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Wrap the rest of the page in another container to center all the content. -->
+    <div class="main">
+      <!-- Three columns of text below the carousel-->
+      <div class="row">
+        <div class="col-md-4">
+        	<div id="carousel-generic" class="carousel slide" data-ride="carousel">
+			  <!-- Indicators -->
+			  <ol class="carousel-indicators">
+			    <li data-target="#carousel-generic" :data-slide-to="i" v-for="(picurl, i) in scenic.picUrls" :class="i==0?'active':''"></li>
+			  </ol>
+			
+			  <!-- Wrapper for slides -->
+			  <div class="carousel-inner" role="listbox">
+			    <div class="item" v-for="(picurl, i) in scenic.picUrls" :class="i==0?'active':''" style="width: 300px; height: 240px">
+			      <img :src="picurl" alt="" style="width: 100%; height: 240px">
+			      
+			    </div>
+			  </div>
+			</div>
+        </div>
+        <div class="col-md-8" style="padding-top: 20px">
+          <h3>{{scenic.scenicName}}</h3>
+          <p>价格：<span class="price">￥{{spec.price}}</span></p>
+          <p>
+          	<label class="radio-inline" v-for="(spec, i) in scenic.scenicSpecList">
+              <input name="type" type="radio" v-model="type" :value="spec.id" :checked="spec.id == type" @change="changeSpec">{{spec.specName}}
+            </label>
+          </p>
+          <p>
+          	<input type="number" class="form-control" v-model="num" placeholder="购票数量" style="width: 100px">
+          </p>
+          <p>
+            <button type="button" class="btn btn-primary" @click="buy">立即购买</button>
+          </p>
+        </div><!-- /.col-md-3 -->
+      </div><!-- /.row -->
+      
+      <div class="row" style="margin-top: 15px">
+	  <ul class="nav nav-tabs" role="tablist">
+	    <li role="presentation" class="active"><a href="#detail" aria-controls="detail" role="tab" data-toggle="tab">详情</a></li>
+	    <li role="presentation"><a href="#evaluation" aria-controls="evaluation" role="tab" data-toggle="tab">评价</a></li>
+	  </ul>
+	
+	  <!-- Tab panes -->
+	  <div class="tab-content">
+	    <div role="tabpanel" class="tab-pane active" id="detail">
+	    	<div class="col-md-12 content" v-html="scenic.describe"></div>
+	    </div>
+	    <div role="tabpanel" class="tab-pane" id="evaluation">
+	    	<div v-for="comment in commentList">
+	    	  <div class="user">
+				  <img class="media-object avatar" :src="comment.member.avatarUrl" alt="">
+				  <div class="nickname">{{comment.member.nickname}}</div>
+				  <div class="time">
+				  	<div>{{comment.createTime}}</div>
+				  </div>
+			  </div>
+			  <div class="content">
+			    {{comment.content}}
+			  </div>
+			  <hr>
+			</div>
+	    </div>
+	  </div>
+	</div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer style="text-align: center">
+      <p>&copy;Copyright 2022微服汇科技 版权所有 | <a style=""  href="http://www.miitbeian.gov.cn/">苏ICP备XXXX</a></p>
+    </footer>
+  </div>
+  <!-- Bootstrap core JavaScript
+  ================================================== -->
+  <!-- Placed at the end of the document so the pages load faster -->
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="/plugins/bootstrap-paginator/bootstrap-paginator.js"></script>
+<script src="/js/front/common.js"></script>
+	<script>   
+    
+	var app = new Vue({
+	  el: '#app',
+	  data: {
+		scenic: {
+			scenicSpecList: []
+		},
+        user: null,
+        type: 1,
+        spec: {},
+        num: 1,
+        commentList: []
+	  },
+      methods: {
+    	//查询景区
+        getScenic: function(id){
+          $.getJSON(domain + "api/scenic/detail", {id: id}, function(r){
+            if(r.code == 0){
+              app.scenic = r.scenic;
+              app.spec = r.scenic.scenicSpecList[0]
+            }
+          })
+        },
+        getSepc(){
+        	for(var i = 0; i < app.scenic.scenicSpecList.length; i++){
+        		if(this.type == app.scenic.scenicSpecList[i].id){
+        			return app.scenic.scenicSpecList[i];
+        		}
+        	}
+        },
+        buy: function(){
+          var spec = this.getSepc();
+          var scenic = app.scenic;
+          var scenicList = [{
+              id: scenic.id,
+              scenicName: scenic.scenicName,
+              picUrl: scenic.picUrl,
+              specName: spec.specName,
+              price: spec.price,
+              num: this.num
+          }];
+          localStorage.setItem("payGoods", JSON.stringify(scenicList));
+          location.href="order_confirm.html";
+          
+        },
+        getComment(id){
+      		$.getJSON(domain + "api/order/evaluation/list", {scenicId: id}, function(r){
+              if(r.code == 0){
+                app.commentList = r.evaluations;
+              }
+            })
+      	},
+        changeSpec(e){
+        	app.spec = this.getSepc();
+        }
+      },
+      created: function(){
+        var id = T.p("id");
+        this.getScenic(id);
+        this.getComment(id);
+        var user = localStorage.getItem("fuser");
+        if(user){
+          this.user = JSON.parse(user);
+        }
+      }
+	})
+	</script>
+  </body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>taobishe.cn-登录</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+  <!-- Bootstrap core CSS -->
+  <link href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style type="text/css">
+        body{
+            padding-top:70px;
+        }
+        .login-box{
+        	width: 350px;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak class="container">
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/index.html">旅游</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="row" style="margin-top: 20px">
+        <div class="col-md-8" style="text-align: center">
+        	<img alt="" src="/img/login-banner.jpg" style="width: 80%">
+        </div>
+        <div class="col-md-4">
+            <!-- /.login-logo -->
+            <div class="panel panel-default login-box" style="margin-top: 30px">
+            <div class="panel-body">
+                <h3>用户登录</h3>
+                <div v-if="error" class="alert alert-danger alert-dismissible">
+                    <h4 style="margin-bottom: 0px;"><i class="fa fa-exclamation-triangle"></i> {{errorMsg}}</h4>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" v-model="username" placeholder="账号">
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" v-model="password" placeholder="密码">
+                </div>
+                <div class="form-group" hidden="true">
+                    <div class="row">
+                        <!-- /.col -->
+                        <div class="col-xs-8">
+                            <input type="text" class="form-control" v-model="captcha" @keyup.enter="login" placeholder="验证码">
+                        </div>
+                        <div class="col-xs-4">
+                            <img alt="如果看不清楚，请单击图片刷新！" class="pointer" :src="src" @click="refreshCode" style="width: 100%; height: 34px">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="row">
+                        <!-- /.col -->
+                        <div class="col-xs-12">
+                            <button type="button" class="btn btn-primary btn-block btn-flat" @click="login">登录</button>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                    <div class="row" style="margin-top: 15px">
+                        <!-- /.col -->
+                        <div class="col-xs-12">
+                            <button type="button" class="btn btn-default btn-block btn-flat" @click="register">注册</button>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </div>
+                <!-- /.social-auth-links -->
+			</div>
+            </div>
+            <!-- /.login-box-body -->
+        </div>
+    </div>
+</div>
+<!-- /.login-box -->
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="/js/front/common.js"></script>
+
+<script type="text/javascript">
+var app = new Vue({
+	el:'#app',
+	data:{
+		username: '',
+		password: '',
+    captcha: '',
+		error: false,
+		errorMsg: '',
+        src: '/captcha.jpg'
+	},
+	
+	methods: {
+        refreshCode: function(){
+            this.src = "/captcha.jpg?t=" + $.now();
+        },
+        login: function () {
+          var data = "loginName="+app.username+"&password="+app.password+"&captcha="+app.captcha;
+			$.ajax({
+				type: "POST",
+			    url: domain + "api/login",
+			    data: data,
+			    dataType: "json",
+			    success: function(r){
+					if(r.code == 0){//登录成功
+			            localStorage.setItem("ftoken", r.token);
+			            localStorage.setItem("fuser", JSON.stringify(r.member));
+			            parent.location.href ='index.html';
+					}else{
+                        app.error = true;
+                        app.errorMsg = r.msg;
+                        app.refreshCode();
+					}
+				}
+			});
+		},
+        register: function(){
+          location.href="/register.html"
+        }
+	}
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wfuhui.modules.order.dao.OrderScenicDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.wfuhui.modules.order.entity.OrderScenicEntity" id="orderScenicMap">
+        <result property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="scenicId" column="scenic_id"/>
+        <result property="scenicName" column="scenic_name"/>
+        <result property="num" column="num"/>
+        <result property="picUrl" column="pic_url"/>
+        <result property="price" column="price"/>
+        <result property="specName" column="spec_name"/>
+    </resultMap>
+
+	<select id="queryObject" resultType="com.wfuhui.modules.order.entity.OrderScenicEntity">
+		select * from ticket_order_scenic where id = #{value}
+	</select>
+
+	<select id="queryList" resultType="com.wfuhui.modules.order.entity.OrderScenicEntity">
+		select * from ticket_order_scenic
+		
+		<where>
+			<if test="orderId != null">
+				order_id = ${orderId}
+			</if>
+		</where>
+		
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="queryTotal" resultType="int">
+		select count(*) from ticket_order_scenic 
+		<where>
+			<if test="orderId != null">
+				order_id = ${orderId}
+			</if>
+		</where>
+	</select>
+	 
+	<insert id="save" parameterType="com.wfuhui.modules.order.entity.OrderScenicEntity" useGeneratedKeys="true" keyProperty="id">
+		insert into ticket_order_scenic
+		(
+			`order_id`, 
+			`scenic_id`,
+			`scenic_name`,
+			`num`,
+			`pic_url`,
+			`spec_name`,
+			`price`
+		)
+		values
+		(
+			#{orderId}, 
+			#{scenicId},
+			#{scenicName},
+			#{num},
+			#{picUrl},
+			#{specName},
+			#{price}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.wfuhui.modules.order.entity.OrderScenicEntity">
+		update ticket_order_scenic 
+		<set>
+			<if test="orderId != null">`order_id` = #{orderId}, </if>
+			<if test="scenicId != null">`scenic_id` = #{scenicId}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ticket_order_scenic where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from ticket_order_scenic where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

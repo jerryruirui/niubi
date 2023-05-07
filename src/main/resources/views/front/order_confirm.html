@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="author" content="南京微服汇网络科技有限公司">
+    <link rel="shortcut icon" href="http://wfuhui.com/favicon.ico" type="image/x-icon">
+
+    <title>旅游</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/plugins/city/city-picker.css" rel="stylesheet" type="text/css" />
+    <link href="/css/common.css" rel="stylesheet">
+
+    <style type="text/css">
+        body{
+            padding-top:70px;
+        }
+        .city-picker-dropdown{
+        	position: static
+        }
+        table{
+        	border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<!-- NAVBAR -->
+<body>
+<div id="app" v-cloak class="container">
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/index.html">旅游</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                </ul>
+                <ul class="nav navbar-nav navbar-right hidden-sm">
+                    <li v-if="user"><a href="user.html">欢迎，{{user.loginName}}</a></li>
+                    <li v-if="user"><a href="#" @click="logout()" >退出</a></li>
+                    <li v-if="!user"><a href="login.html" >登录</a></li>
+                    <li v-if="!user"><a href="register.html" >注册</a></li>
+                    <li><a href="/admin/index.html" target="_blank">管理端</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Wrap the rest of the page in another container to center all the content. -->
+    <div class="main">
+        <div class="row">
+            <table class="table">
+            	<thead>
+            		<tr>
+            			<td>图片</td>
+            			<td>景区名称</td>
+            			<td>规格</td>
+            			<td>价格</td>
+            			<td>数量</td>
+            		</tr>
+            	</thead>
+            	<tbody>
+            		<tr v-for="(scenic, index) in scenicList">
+            			<td><img alt="" :src="scenic.picUrl" width="120" height="100"></td>
+            			<td>{{scenic.scenicName}}</td>
+            			<td>{{scenic.specName}}</td>
+            			<td>{{scenic.price}}</td>
+            			<td>{{scenic.num}}</td>
+            		</tr>
+            	</tbody>
+            </table>
+            
+            <div style="text-align: right;">
+            	<span style="color: #d9534f; margin-right: 10px">￥{{totalAmount}}</span><button class="btn btn-primary" @click="buy">去结算</button>
+            </div>
+        </div><!-- /.row -->
+    </div>
+
+    <!-- FOOTER -->
+    <footer style="text-align: center">
+        <p>&copy;Copyright 2022微服汇科技 版权所有 | <a style=""  href="http://www.miitbeian.gov.cn/">苏ICP备XXXX</a></p>
+    </footer>
+
+</div>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://unpkg.com/jquery@2.2.4/dist/jquery.min.js"></script>
+<script src="https://unpkg.com/vue@2.2.6/dist/vue.min.js"></script>
+<script src="https://unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+<script src="/plugins/bootstrap-paginator/bootstrap-paginator.js"></script>
+<script src="/plugins/city/city-picker.data.js"></script>
+<script src="/plugins/city/city-picker.js"></script>
+<script src="/js/front/common.js"></script>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            scenicList: [],
+            user: null,
+            totalAmount: 0,
+            orderShipment: {
+            	
+            }
+        },
+        methods: {
+
+            logout: function(){
+                localStorage.removeItem("fuser");
+                localStorage.removeItem("ftoken");
+                app.user = null;
+            },
+            //购买
+            buy: function(){
+            	var orderScenicList = [];
+                for(var i = 0; i < this.scenicList.length; i++){
+              	  var orderScenic = {
+                      scenicId: this.scenicList[i].id,
+                      scenicName: this.scenicList[i].scenicName,
+                      price: this.scenicList[i].price,
+                      picUrl: this.scenicList[i].picUrl,
+                      num: 1
+                    }
+              	  orderScenicList.push(orderScenic);
+                }
+                var data = {
+                  totalAmount: app.totalAmount,
+                  orderScenicList: orderScenicList,
+                  orderShipment: app.orderShipment
+                }
+
+              $.ajax({
+                type: "POST",
+                  url: domain + "api/order/create",
+                  contentType: "application/json",
+                  headers: {
+                    token: localStorage.getItem("ftoken")
+                  },
+                  data: JSON.stringify(data),
+                  success: function(r){
+                    if(r.code === 0){
+                    	alert("下单成功");
+                    	location.href="order_pay.html?id=" + r.id;
+                    }else{
+                    	alert(r.msg);
+                  	}
+                }
+              });
+            }
+
+        },
+        created: function(){
+            var user = localStorage.getItem("fuser");
+            if(user){
+                this.user = JSON.parse(user);
+            }else{
+            	
+            }
+         	// 获取下单数据
+            var scenicList = localStorage.getItem('payGoods');
+            if (scenicList) {
+              this.scenicList = JSON.parse(scenicList);
+              var totalAmount = 0;
+              for(var i = 0; i < this.scenicList.length; i++){
+            	  totalAmount += this.scenicList[i].price * this.scenicList[i].num;
+              }
+              this.totalAmount = totalAmount;
+            }
+        }
+    })
+</script>
+</body>
+</html>
